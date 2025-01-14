@@ -61,6 +61,16 @@ public class AccountServiceImpl implements IAccountService {
         return byAccountNumber.get();
     }
 
+    @Override
+    public Account findById(Integer id) {
+        return repository.findById(id).orElseThrow();
+    }
+
+    @Override
+    public Account pureSave(Account account) {
+        return repository.save(account);
+    }
+
     private String generateUniqueAccountNumber() {
         return String.format("%014d", repository.generateAccountNumber());
     }

@@ -4,7 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.example.financial_transaction.model.dto.CustomerSummary;
 import org.example.financial_transaction.service.IAccountService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,17 +16,17 @@ public class AccountController {
     private final IAccountService accountService;
 
     @GetMapping("/find-account-number/{nationalCode}")
-    public JsonMessage findAccountNumber(@PathVariable @NotBlank String nationalCode) {
-        return new JsonMessage("account number is:" + accountService.findAccountNumberByNationalCode(nationalCode));
+    public JsonMessage<String> findAccountNumber(@PathVariable @NotBlank String nationalCode) {
+        return new JsonMessage<>(accountService.findAccountNumberByNationalCode(nationalCode));
     }
 
     @GetMapping("/get-balance/{accountNumber}")
-    public JsonMessage getBalance(@PathVariable String accountNumber) {
-        return new JsonMessage("balance is:" + accountService.findBalanceByAccountNumber(accountNumber));
+    public JsonMessage<String> getBalance(@PathVariable String accountNumber) {
+        return new JsonMessage<>("balance is:" + accountService.findBalanceByAccountNumber(accountNumber));
     }
 
     @GetMapping("/get-summary-customer/{accountNumber}")
-    public ResponseEntity<CustomerSummary> getSummaryCustomer(@PathVariable String accountNumber) {
-        return ResponseEntity.ok().body(accountService.getByAccountNumber(accountNumber));
+    public CustomerSummary getSummaryCustomer(@PathVariable String accountNumber) {
+        return accountService.getByAccountNumber(accountNumber);
     }
 }

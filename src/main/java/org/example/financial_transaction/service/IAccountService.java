@@ -15,4 +15,8 @@ public interface IAccountService {
     Boolean existsByAccountNumber(String accountNumber);
 
     CustomerSummary getByAccountNumber(String accountNumber);
+
+    Account findById(Integer id);
+
+    Account pureSave(Account account);
 }

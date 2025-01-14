@@ -1,10 +1,7 @@
 package org.example.financial_transaction.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.example.financial_transaction.model.enumutation.CustomerType;
 
 import java.time.LocalDate;
