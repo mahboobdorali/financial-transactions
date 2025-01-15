@@ -1,16 +1,20 @@
 package org.example.financial_transaction.service.impl;
 
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.example.financial_transaction.dao.customerRepository.CustomerRepository;
+import org.example.financial_transaction.dao.CustomerRepository;
 import org.example.financial_transaction.exception.DuplicateException;
 import org.example.financial_transaction.model.Account;
 import org.example.financial_transaction.model.Customer;
+import org.example.financial_transaction.model.History;
 import org.example.financial_transaction.model.dto.CustomerUpdateRequest;
 import org.example.financial_transaction.service.IAccountService;
 import org.example.financial_transaction.service.ICustomerService;
+import org.example.financial_transaction.service.IHistoryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -18,6 +22,7 @@ import java.util.Optional;
 public class CustomerServiceImpl implements ICustomerService {
     private final CustomerRepository repository;
     private final IAccountService iAccountService;
+    private final IHistoryService iHistoryService;
 
     //todo:exceptions should be spring message
     @Transactional
@@ -35,33 +40,68 @@ public class CustomerServiceImpl implements ICustomerService {
     @Override
     @Transactional
     public void update(CustomerUpdateRequest customerUpdateRequest) {
-        if (customerUpdateRequest.customerId() != null) {
-            Customer prevCustomer = findById(customerUpdateRequest.customerId());
-
-//            Optional.ofNullable(customerUpdateRequest.name()).ifPresent(newName->{
-//                    History history = new History();
-//                    history.setDescription();
-//                    prevCustomer.setName(newName);
-//            });
-
-            Optional.ofNullable(customerUpdateRequest.name()).ifPresent(prevCustomer::setName);
-            Optional.ofNullable(customerUpdateRequest.nationalCode()).ifPresent(prevCustomer::setNationalCode);
-            Optional.ofNullable(customerUpdateRequest.establishmentDate()).ifPresent(prevCustomer::setEstablishmentDate);
-            Optional.ofNullable(customerUpdateRequest.customerType()).ifPresent(prevCustomer::setCustomerType);
-            Optional.ofNullable(customerUpdateRequest.phoneNumber()).ifPresent(prevCustomer::setPhoneNumber);
-            Optional.ofNullable(customerUpdateRequest.address()).ifPresent(prevCustomer::setAddress);
-            repository.save(prevCustomer);
+        Boolean isDuplicate = findDuplicateByNationalCode(customerUpdateRequest.nationalCode(), customerUpdateRequest.id());
+        if (isDuplicate)
+            throw new DuplicateException(customerUpdateRequest.nationalCode());
+        Customer prevCustomer = findById(customerUpdateRequest.id());
+        StringBuilder description = new StringBuilder();
+        Optional.ofNullable(customerUpdateRequest.name()).ifPresent(newName -> {
+            if (!newName.equals(prevCustomer.getName())) {
+                description.append("name: ").append(newName).append(",");
+                prevCustomer.setName(newName);
+            }
+        });
+        Optional.ofNullable(customerUpdateRequest.nationalCode()).ifPresent(newNationalCode -> {
+            if (!newNationalCode.equals(prevCustomer.getNationalCode())) {
+                description.append("nationalCode: ").append(newNationalCode).append(",");
+                prevCustomer.setNationalCode(newNationalCode);
+            }
+        });
+        Optional.ofNullable(customerUpdateRequest.establishmentDate()).ifPresent(newDate -> {
+            if (!newDate.equals(prevCustomer.getEstablishmentDate())) {
+                description.append("establishmentDate: ").append(newDate).append(",");
+                prevCustomer.setEstablishmentDate(newDate);
+            }
+        });
+        Optional.ofNullable(customerUpdateRequest.customerType()).ifPresent(newType -> {
+            if (!newType.equals(prevCustomer.getCustomerType())) {
+                description.append("customerType: ").append(newType).append(",");
+                prevCustomer.setCustomerType(newType);
+            }
+        });
+        Optional.ofNullable(customerUpdateRequest.phoneNumber()).ifPresent(newPhoneNumber -> {
+            if (!newPhoneNumber.equals(prevCustomer.getPhoneNumber())) {
+                description.append("phoneNumber: ").append(newPhoneNumber).append(",");
+                prevCustomer.setPhoneNumber(newPhoneNumber);
+            }
+        });
+        Optional.ofNullable(customerUpdateRequest.address()).ifPresent(newAddress -> {
+            if (!newAddress.equals(prevCustomer.getAddress())) {
+                description.append("address: ").append(newAddress).append(",");
+                prevCustomer.setAddress(newAddress);
+            }
+        });
+        if (!description.isEmpty()) {
+            description.append(" successfully updated");
+            saveHistory(String.valueOf(description), prevCustomer);
         }
-        if (customerUpdateRequest.accountId() != null) {
-            Account prevAccount = iAccountService.findById(customerUpdateRequest.accountId());
-            Optional.ofNullable(customerUpdateRequest.accountType()).ifPresent(prevAccount::setAccountType);
-            iAccountService.pureSave(prevAccount);
-        }
+        repository.save(prevCustomer);
     }
 
     @Override
     public Customer findById(Integer id) {
         return repository.findById(id).orElseThrow();
+    }
+
+    public void saveHistory(String description, Customer customer) {
+        String username = "username";
+        History history = new History(username, LocalDateTime.now(), description, null, customer);
+        iHistoryService.save(history);
+    }
+
+    @Override
+    public Boolean findDuplicateByNationalCode(String nationalCode, Integer id) {
+        return repository.findDuplicateByNationalCode(nationalCode, id);
     }
 }
 

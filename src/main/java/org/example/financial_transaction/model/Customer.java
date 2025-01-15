@@ -5,6 +5,8 @@ import lombok.*;
 import org.example.financial_transaction.model.enumutation.CustomerType;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -21,6 +23,11 @@ public class Customer extends User {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id")
     private Account account;
+
+    @OneToMany(mappedBy = "customer")
+    private List<History> histories = new ArrayList<>();
+
+
 
     public Customer(String name, String nationalCode, LocalDate establishmentDate, String phoneNumber, String address, String postalCode, CustomerType customerType, Account account) {
         super(name, nationalCode, establishmentDate, phoneNumber, address, postalCode);
