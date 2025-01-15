@@ -7,7 +7,9 @@ import lombok.*;
 import org.example.financial_transaction.model.enumutation.AccountType;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -15,7 +17,6 @@ import java.util.Date;
 @NoArgsConstructor
 @Entity
 @Table(name = "accounts")
-@ToString
 public class Account extends BaseEntity {
 
     @NotBlank
@@ -39,4 +40,16 @@ public class Account extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "account")
     private Customer customer;
 
+    @OneToMany(mappedBy = "account")
+    private List<History> histories = new ArrayList<>();
+
+    @Override
+    public String toString() {
+        return "Account{" +
+               "balance=" + balance +
+               ", accountType=" + accountType +
+               ", creationDate=" + creationDate +
+               ", accountNumber='" + accountNumber + '\'' +
+               '}';
+    }
 }

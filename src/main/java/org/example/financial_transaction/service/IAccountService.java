@@ -1,7 +1,10 @@
 package org.example.financial_transaction.service;
 
 import org.example.financial_transaction.model.Account;
+import org.example.financial_transaction.model.dto.AccountUpdateRequest;
 import org.example.financial_transaction.model.dto.CustomerSummary;
+
+import java.util.Optional;
 
 public interface IAccountService {
     Account createAccount();
@@ -18,5 +21,9 @@ public interface IAccountService {
 
     Account findById(Integer id);
 
-    Account pureSave(Account account);
+    void update(AccountUpdateRequest accountUpdateRequest);
+
+    Account findByAccountNumber(String accountNumber);
+
+    void pureSave(Account account);
 }

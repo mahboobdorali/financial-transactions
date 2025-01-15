@@ -2,12 +2,10 @@ package org.example.financial_transaction.controller;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.example.financial_transaction.model.dto.AccountUpdateRequest;
 import org.example.financial_transaction.model.dto.CustomerSummary;
 import org.example.financial_transaction.service.IAccountService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/account")
@@ -21,12 +19,17 @@ public class AccountController {
     }
 
     @GetMapping("/get-balance/{accountNumber}")
-    public JsonMessage<String> getBalance(@PathVariable String accountNumber) {
-        return new JsonMessage<>("balance is:" + accountService.findBalanceByAccountNumber(accountNumber));
+    public JsonMessage<Double> getBalance(@PathVariable String accountNumber) {
+        return new JsonMessage<>(accountService.findBalanceByAccountNumber(accountNumber));
     }
 
     @GetMapping("/get-summary-customer/{accountNumber}")
     public CustomerSummary getSummaryCustomer(@PathVariable String accountNumber) {
         return accountService.getByAccountNumber(accountNumber);
+    }
+
+    @PutMapping("/update")
+    public void update(@RequestBody AccountUpdateRequest accountUpdateRequest) {
+        accountService.update(accountUpdateRequest);
     }
 }

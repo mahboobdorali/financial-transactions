@@ -1,4 +1,4 @@
-package org.example.financial_transaction.dao.AccountRepository;
+package org.example.financial_transaction.dao;
 
 import org.example.financial_transaction.model.Account;
 import org.example.financial_transaction.model.dto.CustomerSummary;
@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface IAccountRepository extends JpaRepository<Account, Integer> {
+public interface AccountRepository extends JpaRepository<Account, Integer> {
     @Query(value = "SELECT nextval('seq_account_number')", nativeQuery = true)
     Long generateAccountNumber();
 
@@ -43,4 +43,6 @@ public interface IAccountRepository extends JpaRepository<Account, Integer> {
               from Account a left join a.customer c where a.accountNumber=:accountNumber
             """)
     Optional<CustomerSummary> getByAccountNumber(@Param("accountNumber") String accountNumber);
+
+    Optional<Account> findByAccountNumber(String accountNumber);
 }
