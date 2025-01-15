@@ -14,5 +14,4 @@ import java.time.LocalDateTime;
 public class ErrorDetails {
     private LocalDateTime localDateTime;
     private String massage;
-    private Integer statusCode;
 }

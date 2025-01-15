@@ -37,7 +37,33 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(),
-                "Total Errors:" + ex.getErrorCount() + " First Error:" + Objects.requireNonNull(ex.getFieldError()).getDefaultMessage(), 400);
+                "Total Errors:" + ex.getErrorCount() + " First Error:" + Objects.requireNonNull(ex.getFieldError()).getDefaultMessage());
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(InsufficientFundsException.class)
+    public ResponseEntity<?> handleException(InsufficientFundsException de) {
+        CustomException customException = new CustomException(HttpStatus.BAD_REQUEST, de.getLocalizedMessage());
+        return new ResponseEntity<>(customException, customException.httpStatus());
+    }
+
+    @ExceptionHandler(DisabledAccountException.class)
+    public ResponseEntity<?> handleException(DisabledAccountException de) {
+        CustomException customException = new CustomException(HttpStatus.BAD_REQUEST, de.getLocalizedMessage());
+        return new ResponseEntity<>(customException, customException.httpStatus());
+    }
+
+    @ExceptionHandler(DuplicateAccountException.class)
+    public ResponseEntity<?> handleException(DuplicateAccountException de) {
+        CustomException customException = new CustomException(HttpStatus.BAD_REQUEST, de.getLocalizedMessage());
+        return new ResponseEntity<>(customException, customException.httpStatus());
+    }
+
+    @ExceptionHandler(InvalidAmountException.class)
+    public ResponseEntity<?> handleException(InvalidAmountException de) {
+        CustomException customException = new CustomException(HttpStatus.BAD_REQUEST, de.getLocalizedMessage());
+        return new ResponseEntity<>(customException, customException.httpStatus());
+    }
+
+
 }
