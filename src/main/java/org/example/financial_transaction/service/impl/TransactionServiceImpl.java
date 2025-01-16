@@ -2,20 +2,18 @@ package org.example.financial_transaction.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.example.financial_transaction.dao.TransactionRepository;
-import org.example.financial_transaction.exception.InvalidAmountException;
-import org.example.financial_transaction.model.dto.DepositRequest;
-import org.example.financial_transaction.exception.DisabledAccountException;
-import org.example.financial_transaction.exception.DuplicateAccountException;
-import org.example.financial_transaction.exception.InsufficientFundsException;
+import org.example.financial_transaction.exception.*;
 import org.example.financial_transaction.model.Account;
 import org.example.financial_transaction.model.Transaction;
 import org.example.financial_transaction.model.TransferFeeConfig;
-import org.example.financial_transaction.model.dto.TransferRequest;
-import org.example.financial_transaction.model.dto.WithdrawRequest;
+import org.example.financial_transaction.model.dto.*;
 import org.example.financial_transaction.model.enumutation.AccountType;
+import org.example.financial_transaction.model.enumutation.TransactionStatus;
 import org.example.financial_transaction.model.enumutation.TransactionType;
 import org.example.financial_transaction.service.IAccountService;
 import org.example.financial_transaction.service.ITransactionService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +46,7 @@ public class TransactionServiceImpl implements ITransactionService {
         transaction.setTrackingCode(trackingCode);
         transaction.setAmount(transferRequest.amount());
         transaction.setTransactionType(TransactionType.TRANSFER);
+        transaction.setTransactionStatus(TransactionStatus.CONFIRM);
         repository.save(transaction);
         return trackingCode;
     }
@@ -66,6 +65,7 @@ public class TransactionServiceImpl implements ITransactionService {
         long trackingCode = generateTrackingCode();
         transaction.setTrackingCode(trackingCode);
         transaction.setAmount(depositRequest.amount());
+        transaction.setTransactionStatus(TransactionStatus.CONFIRM);
         repository.save(transaction);
         return trackingCode;
     }
@@ -84,8 +84,20 @@ public class TransactionServiceImpl implements ITransactionService {
         long trackingCode = generateTrackingCode();
         transaction.setTrackingCode(trackingCode);
         transaction.setAmount(withdrawRequest.amount());
+        transaction.setTransactionStatus(TransactionStatus.CONFIRM);
         repository.save(transaction);
         return trackingCode;
+    }
+
+    @Override
+    public StatusInquiryResponse getStatusInquiry(Long trackingCode) {
+        Transaction transaction = findByTrackingCode(trackingCode);
+        return new StatusInquiryResponse(transaction.getId(), transaction.getCreationDate());
+    }
+
+    @Override
+    public Transaction findByTrackingCode(Long trackingCode) {
+        return repository.findByTrackingCode(trackingCode).orElseThrow(() -> new TransactionNotFoundException(trackingCode));
     }
 
     private long generateTrackingCode() {
@@ -115,6 +127,7 @@ public class TransactionServiceImpl implements ITransactionService {
         balance -= amount + transferFee;
         if (balance < 0)
             throw new InsufficientFundsException();
+        saveTransferFee(transferFee);
         account.setBalance(balance);
         iAccountService.pureSave(account);
     }
@@ -127,7 +140,7 @@ public class TransactionServiceImpl implements ITransactionService {
         iAccountService.pureSave(destinationAccount);
     }
 
-    public double calculateTransferFee(Double amount) {
+    private double calculateTransferFee(Double amount) {
         double calculatedFee = amount * (transferFeeConfig.getPercentage() / 1000);
         if (calculatedFee < transferFeeConfig.getFloor()) {
             return transferFeeConfig.getFloor();
@@ -136,5 +149,26 @@ public class TransactionServiceImpl implements ITransactionService {
         } else {
             return calculatedFee;
         }
+    }
+
+    private void saveTransferFee(double transferFee) {
+        Account bankAccount = iAccountService.findByAccountNumber("11111111111111");
+        Double balance = bankAccount.getBalance();
+        balance += transferFee;
+        bankAccount.setBalance(balance);
+        iAccountService.pureSave(bankAccount);
+    }
+
+    @Override
+    public Page<TransactionSearchResponse> getFilteredTransactions(TransactionSearch transactionSearch,
+                                                                   Pageable pageable) {
+        Page<Transaction> transactions = repository.findAll(transactionSearch, pageable);
+        return transactions.map(transaction -> new TransactionSearchResponse(
+                transaction.getId(),
+                transaction.getAmount(),
+                transaction.getTransactionType(),
+                transaction.getCreationDate(),
+                transaction.getTrackingCode()
+        ));
     }
 }

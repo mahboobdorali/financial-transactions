@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.financial_transaction.model.enumutation.TransactionStatus;
 import org.example.financial_transaction.model.enumutation.TransactionType;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -41,4 +42,7 @@ public class Transaction extends BaseEntity {
     @Column(name = "tracking_code")
     private Long trackingCode;
 
+    @Column(name ="transaction_status")
+    @Enumerated(value = EnumType.ORDINAL)
+    private TransactionStatus transactionStatus;
 }
