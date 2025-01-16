@@ -38,7 +38,7 @@ public class AccountServiceImpl implements IAccountService {
     @Override
     public String findAccountNumberByNationalCode(String nationalCode) {
         if (!existByNationalCode(nationalCode))
-            throw new EntityNotFoundException("nationalCode" + nationalCode);
+            throw new EntityNotFoundException(nationalCode);
         return repository.findAccountNumberByNationalCode(nationalCode);
     }
 

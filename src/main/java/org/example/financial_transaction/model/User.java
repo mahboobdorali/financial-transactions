@@ -2,6 +2,7 @@ package org.example.financial_transaction.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,7 +12,7 @@ import java.time.LocalDate;
 @MappedSuperclass
 @Getter
 @Setter
-// @AllArgsConstructor
+@AllArgsConstructor
 @NoArgsConstructor
 public class User extends BaseEntity {
 
@@ -36,14 +37,4 @@ public class User extends BaseEntity {
 
     @Column(name = "postal_code", nullable = false)
     private String postalCode;
-
-
-    public User(String name, String nationalCode, LocalDate establishmentDate, String phoneNumber, String address, String postalCode) {
-        this.name = name;
-        this.nationalCode = nationalCode;
-        this.establishmentDate = establishmentDate;
-        this.phoneNumber = phoneNumber;
-        this.address = address;
-        this.postalCode = postalCode;
-    }
 }

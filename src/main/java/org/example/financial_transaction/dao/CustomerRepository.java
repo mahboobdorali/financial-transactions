@@ -15,5 +15,5 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
     @Query("""
             select count(c) > 0 from Customer c where c.nationalCode = :nationalCode and c.id<>:id
             """)
-    Boolean findDuplicateByNationalCode(@Param("nationalCode") String nationalCode, @Param("id") Integer id);
+    Boolean findDuplicateByNationalCodeAndId(@Param("nationalCode") String nationalCode, @Param("id") Integer id);
 }

@@ -1,6 +1,6 @@
 package org.example.financial_transaction.service.impl;
 
-import lombok.Data;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.example.financial_transaction.dao.CustomerRepository;
 import org.example.financial_transaction.exception.DuplicateException;
@@ -8,13 +8,17 @@ import org.example.financial_transaction.model.Account;
 import org.example.financial_transaction.model.Customer;
 import org.example.financial_transaction.model.History;
 import org.example.financial_transaction.model.dto.CustomerUpdateRequest;
+import org.example.financial_transaction.model.enumutation.AccountType;
+import org.example.financial_transaction.model.enumutation.CustomerType;
 import org.example.financial_transaction.service.IAccountService;
 import org.example.financial_transaction.service.ICustomerService;
 import org.example.financial_transaction.service.IHistoryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -40,7 +44,7 @@ public class CustomerServiceImpl implements ICustomerService {
     @Override
     @Transactional
     public void update(CustomerUpdateRequest customerUpdateRequest) {
-        Boolean isDuplicate = findDuplicateByNationalCode(customerUpdateRequest.nationalCode(), customerUpdateRequest.id());
+        Boolean isDuplicate = findDuplicateByNationalCodeAndId(customerUpdateRequest.nationalCode(), customerUpdateRequest.id());
         if (isDuplicate)
             throw new DuplicateException(customerUpdateRequest.nationalCode());
         Customer prevCustomer = findById(customerUpdateRequest.id());
@@ -100,8 +104,18 @@ public class CustomerServiceImpl implements ICustomerService {
     }
 
     @Override
-    public Boolean findDuplicateByNationalCode(String nationalCode, Integer id) {
-        return repository.findDuplicateByNationalCode(nationalCode, id);
+    public Boolean findDuplicateByNationalCodeAndId(String nationalCode, Integer id) {
+        return repository.findDuplicateByNationalCodeAndId(nationalCode, id);
+    }
+
+    @PostConstruct
+    public void init() {
+        if (!iAccountService.existsByAccountNumber("11111111111111")) {
+            Account account = new Account("11111111111111", new Date(), AccountType.ACTIVE, 0D, null, null);
+            Customer customer = new Customer("resalat bank", "1234567890", LocalDate.now(), "09124569874", "tehran bank resalat", "12345678", CustomerType.LEGAL, account);
+            repository.save(customer);
+        }
+
     }
 }
 

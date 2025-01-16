@@ -11,5 +11,5 @@ public interface ICustomerService {
 
     Customer findById(Integer id);
 
-    Boolean findDuplicateByNationalCode(String nationalCode, Integer id);
+    Boolean findDuplicateByNationalCodeAndId(String nationalCode, Integer id);
 }

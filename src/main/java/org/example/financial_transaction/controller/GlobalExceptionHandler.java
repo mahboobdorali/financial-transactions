@@ -65,5 +65,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(customException, customException.httpStatus());
     }
 
+    @ExceptionHandler(TransactionNotFoundException.class)
+    public ResponseEntity<?> handleException(TransactionNotFoundException de) {
+        CustomException customException = new CustomException(HttpStatus.BAD_REQUEST, de.getLocalizedMessage());
+        return new ResponseEntity<>(customException, customException.httpStatus());
+    }
+
 
 }

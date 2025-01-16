@@ -14,19 +14,19 @@ import java.util.List;
 @Entity
 @Table(name = "customers")
 @ToString
+@AllArgsConstructor
 public class Customer extends User {
 
     @Enumerated(value = EnumType.ORDINAL)
     @Column(name = "customer_type", nullable = false)
     private CustomerType customerType;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "account_id")
     private Account account;
 
     @OneToMany(mappedBy = "customer")
     private List<History> histories = new ArrayList<>();
-
 
 
     public Customer(String name, String nationalCode, LocalDate establishmentDate, String phoneNumber, String address, String postalCode, CustomerType customerType, Account account) {
@@ -38,5 +38,4 @@ public class Customer extends User {
     public Customer(String name, String nationalCode, LocalDate establishmentDate, String phoneNumber, String address, String postalCode) {
         super(name, nationalCode, establishmentDate, phoneNumber, address, postalCode);
     }
-
 }
