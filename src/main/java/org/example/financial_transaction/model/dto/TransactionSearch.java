@@ -4,25 +4,31 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import org.example.financial_transaction.model.Transaction;
-import org.example.financial_transaction.model.enumutation.TransactionType;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Date;
 
-public record TransactionSearch(TransactionType transactionType,
+public record TransactionSearch(@Pattern(regexp = "^[0-9]{14}$", message = "sourceAccountNumber must be 14 digits")
                                 String sourceAccountNumber,
+
+                                @Pattern(regexp = "^[0-9]{14}$", message = "destinationAccountNumber must be 14 digits")
                                 String destinationAccountNumber,
+
+                                @Positive(message = "amount must be positive")
                                 Double minAmount,
+
+                                @Positive(message = "amount must be positive")
                                 Double maxAmount,
+
                                 Date startDate,
+
                                 Date endDate) implements Specification<Transaction> {
     @Override
     public Predicate toPredicate(Root<Transaction> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
         Predicate predicate = criteriaBuilder.conjunction();
-        if (transactionType != null) {
-            criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("transactionType"), transactionType));
-        }
         if (sourceAccountNumber != null) {
             criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("sourceAccount").get("accountNumber"), sourceAccountNumber));
         }

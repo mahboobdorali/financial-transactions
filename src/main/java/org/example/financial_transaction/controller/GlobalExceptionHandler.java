@@ -59,14 +59,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(customException, customException.httpStatus());
     }
 
-    @ExceptionHandler(InvalidAmountException.class)
-    public ResponseEntity<?> handleException(InvalidAmountException de) {
+    @ExceptionHandler(TransactionNotFoundException.class)
+    public ResponseEntity<?> handleException(TransactionNotFoundException de) {
         CustomException customException = new CustomException(HttpStatus.BAD_REQUEST, de.getLocalizedMessage());
         return new ResponseEntity<>(customException, customException.httpStatus());
     }
 
-    @ExceptionHandler(TransactionNotFoundException.class)
-    public ResponseEntity<?> handleException(TransactionNotFoundException de) {
+    @ExceptionHandler(IdNotFoundException.class)
+    public ResponseEntity<?> handleException(IdNotFoundException de) {
         CustomException customException = new CustomException(HttpStatus.BAD_REQUEST, de.getLocalizedMessage());
         return new ResponseEntity<>(customException, customException.httpStatus());
     }

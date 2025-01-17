@@ -1,5 +1,6 @@
 package org.example.financial_transaction.controller;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.example.financial_transaction.model.dto.AccountUpdateRequest;
@@ -29,7 +30,7 @@ public class AccountController {
     }
 
     @PutMapping("/update")
-    public void update(@RequestBody AccountUpdateRequest accountUpdateRequest) {
+    public void update(@Valid @RequestBody AccountUpdateRequest accountUpdateRequest) {
         accountService.update(accountUpdateRequest);
     }
 }

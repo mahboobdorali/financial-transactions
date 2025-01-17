@@ -1,24 +1,23 @@
 package org.example.financial_transaction.service.impl;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.example.financial_transaction.dao.CustomerRepository;
 import org.example.financial_transaction.exception.DuplicateException;
+import org.example.financial_transaction.exception.IdNotFoundException;
 import org.example.financial_transaction.model.Account;
+import org.example.financial_transaction.model.Admin;
 import org.example.financial_transaction.model.Customer;
 import org.example.financial_transaction.model.History;
 import org.example.financial_transaction.model.dto.CustomerUpdateRequest;
-import org.example.financial_transaction.model.enumutation.AccountType;
 import org.example.financial_transaction.model.enumutation.CustomerType;
 import org.example.financial_transaction.service.IAccountService;
 import org.example.financial_transaction.service.ICustomerService;
 import org.example.financial_transaction.service.IHistoryService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -28,7 +27,6 @@ public class CustomerServiceImpl implements ICustomerService {
     private final IAccountService iAccountService;
     private final IHistoryService iHistoryService;
 
-    //todo:exceptions should be spring message
     @Transactional
     @Override
     public void registerCustomer(Customer customer) {
@@ -68,9 +66,9 @@ public class CustomerServiceImpl implements ICustomerService {
             }
         });
         Optional.ofNullable(customerUpdateRequest.customerType()).ifPresent(newType -> {
-            if (!newType.equals(prevCustomer.getCustomerType())) {
+            if (!newType.equals(prevCustomer.getCustomerType().name())) {
                 description.append("customerType: ").append(newType).append(",");
-                prevCustomer.setCustomerType(newType);
+                prevCustomer.setCustomerType(CustomerType.valueOf(newType));
             }
         });
         Optional.ofNullable(customerUpdateRequest.phoneNumber()).ifPresent(newPhoneNumber -> {
@@ -94,28 +92,18 @@ public class CustomerServiceImpl implements ICustomerService {
 
     @Override
     public Customer findById(Integer id) {
-        return repository.findById(id).orElseThrow();
+        return repository.findById(id).orElseThrow(() -> new IdNotFoundException(id));
     }
 
     public void saveHistory(String description, Customer customer) {
-        String username = "username";
-        History history = new History(username, LocalDateTime.now(), description, null, customer);
+        Admin principal = (Admin) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        History history = new History(principal.getUsername(), LocalDateTime.now(), description, null, customer);
         iHistoryService.save(history);
     }
 
     @Override
     public Boolean findDuplicateByNationalCodeAndId(String nationalCode, Integer id) {
         return repository.findDuplicateByNationalCodeAndId(nationalCode, id);
-    }
-
-    @PostConstruct
-    public void init() {
-        if (!iAccountService.existsByAccountNumber("11111111111111")) {
-            Account account = new Account("11111111111111", new Date(), AccountType.ACTIVE, 0D, null, null);
-            Customer customer = new Customer("resalat bank", "1234567890", LocalDate.now(), "09124569874", "tehran bank resalat", "12345678", CustomerType.LEGAL, account);
-            repository.save(customer);
-        }
-
     }
 }
 

@@ -4,13 +4,16 @@ import lombok.RequiredArgsConstructor;
 import org.example.financial_transaction.dao.AccountRepository;
 import org.example.financial_transaction.exception.AccountNotFoundException;
 import org.example.financial_transaction.exception.EntityNotFoundException;
+import org.example.financial_transaction.exception.IdNotFoundException;
 import org.example.financial_transaction.model.Account;
+import org.example.financial_transaction.model.Admin;
 import org.example.financial_transaction.model.History;
 import org.example.financial_transaction.model.dto.AccountUpdateRequest;
 import org.example.financial_transaction.model.dto.CustomerSummary;
 import org.example.financial_transaction.model.enumutation.AccountType;
 import org.example.financial_transaction.service.IAccountService;
 import org.example.financial_transaction.service.IHistoryService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,7 +72,7 @@ public class AccountServiceImpl implements IAccountService {
 
     @Override
     public Account findById(Integer id) {
-        return repository.findById(id).orElseThrow();
+        return repository.findById(id).orElseThrow(() -> new IdNotFoundException(id));
     }
 
     @Override
@@ -78,9 +81,9 @@ public class AccountServiceImpl implements IAccountService {
         Account prevAccount = findById(accountUpdateRequest.id());
         StringBuilder description = new StringBuilder();
         Optional.ofNullable(accountUpdateRequest.accountType()).ifPresent(newType -> {
-            if (!newType.equals(prevAccount.getAccountType())) {
+            if (!newType.equalsIgnoreCase(prevAccount.getAccountType().name())) {
                 description.append("account type: ").append(newType);
-                prevAccount.setAccountType(newType);
+                prevAccount.setAccountType(AccountType.valueOf(newType));
             }
         });
         if (!description.isEmpty()) {
@@ -101,8 +104,8 @@ public class AccountServiceImpl implements IAccountService {
     }
 
     public void saveHistory(String description, Account account) {
-        String username = "username1";
-        History history = new History(username, LocalDateTime.now(), description, account, null);
+        Admin principal = (Admin) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        History history = new History(principal.getUsername(), LocalDateTime.now(), description, account, null);
         iHistoryService.save(history);
     }
 

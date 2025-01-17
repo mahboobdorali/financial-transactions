@@ -14,7 +14,4 @@ public record CustomerSummary(String name,
                               String postalCode,
                               AccountType accountType,
                               String accountNumber) {
-    //todo:last updated
-
-
 }

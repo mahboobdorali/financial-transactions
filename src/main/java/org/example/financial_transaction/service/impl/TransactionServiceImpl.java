@@ -2,7 +2,9 @@ package org.example.financial_transaction.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.example.financial_transaction.dao.TransactionRepository;
-import org.example.financial_transaction.exception.*;
+import org.example.financial_transaction.exception.DisabledAccountException;
+import org.example.financial_transaction.exception.InsufficientFundsException;
+import org.example.financial_transaction.exception.TransactionNotFoundException;
 import org.example.financial_transaction.model.Account;
 import org.example.financial_transaction.model.Transaction;
 import org.example.financial_transaction.model.TransferFeeConfig;
@@ -17,7 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
 import java.util.Random;
 
 @Service
@@ -30,23 +31,13 @@ public class TransactionServiceImpl implements ITransactionService {
     @Override
     @Transactional
     public long transferAmount(TransferRequest transferRequest) {
-        Transaction transaction = new Transaction();
-        if (transferRequest.amount() < 0)
-            throw new InvalidAmountException();
-        if (Objects.equals(transferRequest.sourceAccountNumber(), transferRequest.destinationAccountNumber()))
-            throw new DuplicateAccountException();
         Account source = iAccountService.findByAccountNumber(transferRequest.sourceAccountNumber());
         Account destination = iAccountService.findByAccountNumber(transferRequest.destinationAccountNumber());
         checkAccountStatus(source);
         checkAccountStatus(destination);
         transferAmount(source, destination, transferRequest.amount());
-        transaction.setSourceAccount(source);
-        transaction.setDestinationAccount(destination);
         long trackingCode = generateTrackingCode();
-        transaction.setTrackingCode(trackingCode);
-        transaction.setAmount(transferRequest.amount());
-        transaction.setTransactionType(TransactionType.TRANSFER);
-        transaction.setTransactionStatus(TransactionStatus.CONFIRM);
+        Transaction transaction = initializationTransaction(destination, source, TransactionType.TRANSFER, trackingCode, transferRequest.amount());
         repository.save(transaction);
         return trackingCode;
     }
@@ -54,37 +45,33 @@ public class TransactionServiceImpl implements ITransactionService {
     @Override
     @Transactional
     public long depositAmount(DepositRequest depositRequest) {
-        if (depositRequest.amount() < 0)
-            throw new InvalidAmountException();
-        Transaction transaction = new Transaction();
         Account destination = iAccountService.findByAccountNumber(depositRequest.destinationAccountNumber());
         checkAccountStatus(destination);
         increaseBalance(destination, depositRequest.amount());
-        transaction.setDestinationAccount(destination);
-        transaction.setTransactionType(TransactionType.DEPOSIT);
         long trackingCode = generateTrackingCode();
-        transaction.setTrackingCode(trackingCode);
-        transaction.setAmount(depositRequest.amount());
-        transaction.setTransactionStatus(TransactionStatus.CONFIRM);
+        Transaction transaction = initializationTransaction(destination, null, TransactionType.DEPOSIT, trackingCode, depositRequest.amount());
         repository.save(transaction);
         return trackingCode;
+    }
+
+    private Transaction initializationTransaction(Account destinationAccount, Account sourceAccount, TransactionType transactionType, Long trackingCode, Double amount) {
+        Transaction transaction = new Transaction();
+        transaction.setDestinationAccount(destinationAccount);
+        transaction.setTransactionType(transactionType);
+        transaction.setTrackingCode(trackingCode);
+        transaction.setAmount(amount);
+        transaction.setTransactionStatus(TransactionStatus.CONFIRM);
+        return transaction;
     }
 
     @Override
     @Transactional
     public long withdrawAmount(WithdrawRequest withdrawRequest) {
-        if (withdrawRequest.amount() < 0)
-            throw new InvalidAmountException();
-        Transaction transaction = new Transaction();
         Account source = iAccountService.findByAccountNumber(withdrawRequest.sourceAccountNumber());
         checkAccountStatus(source);
         processTransfer(source, withdrawRequest.amount());
-        transaction.setSourceAccount(source);
-        transaction.setTransactionType(TransactionType.WITHDRAW);
         long trackingCode = generateTrackingCode();
-        transaction.setTrackingCode(trackingCode);
-        transaction.setAmount(withdrawRequest.amount());
-        transaction.setTransactionStatus(TransactionStatus.CONFIRM);
+        Transaction transaction = initializationTransaction(source, null, TransactionType.WITHDRAW, trackingCode, withdrawRequest.amount());
         repository.save(transaction);
         return trackingCode;
     }
@@ -160,13 +147,11 @@ public class TransactionServiceImpl implements ITransactionService {
     }
 
     @Override
-    public Page<TransactionSearchResponse> getFilteredTransactions(TransactionSearch transactionSearch,
-                                                                   Pageable pageable) {
+    public Page<TransactionSearchResponse> getFilteredTransactions(TransactionSearch transactionSearch, Pageable pageable) {
         Page<Transaction> transactions = repository.findAll(transactionSearch, pageable);
         return transactions.map(transaction -> new TransactionSearchResponse(
                 transaction.getId(),
                 transaction.getAmount(),
-                transaction.getTransactionType(),
                 transaction.getCreationDate(),
                 transaction.getTrackingCode()
         ));

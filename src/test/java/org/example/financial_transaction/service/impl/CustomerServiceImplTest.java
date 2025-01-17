@@ -3,6 +3,7 @@ package org.example.financial_transaction.service.impl;
 import org.example.financial_transaction.dao.CustomerRepository;
 import org.example.financial_transaction.exception.DuplicateException;
 import org.example.financial_transaction.model.Account;
+import org.example.financial_transaction.model.Admin;
 import org.example.financial_transaction.model.Customer;
 import org.example.financial_transaction.model.dto.CustomerUpdateRequest;
 import org.example.financial_transaction.model.enumutation.AccountType;
@@ -13,6 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -42,7 +46,7 @@ class CustomerServiceImplTest {
     void setup() {
         account = new Account("12345678901234", new Date(), AccountType.ACTIVE, 10D, null, null);
         customer = new Customer("mahboob", "4610735131", LocalDate.MIN, "09919823955", "tehran street1", "8558214", CustomerType.REAL, null);
-        newCustomer = new CustomerUpdateRequest(1, "mahi", "4610735171", LocalDate.now(), CustomerType.LEGAL, "02125478544", "isfahan", "45632101");
+        newCustomer = new CustomerUpdateRequest(1, "mahi", "4610735171", LocalDate.now(), CustomerType.LEGAL.name(), "02125478544", "isfahan", "45632101");
     }
 
     @Test
@@ -73,6 +77,7 @@ class CustomerServiceImplTest {
 
     @Test
     void shouldUpdateCustomer() {
+        mockSecurityContext();
         when(underTest.findDuplicateByNationalCodeAndId(anyString(), anyInt())).thenReturn(false);
         when(repository.findById(anyInt())).thenReturn(Optional.of(customer));
         underTest.update(newCustomer);
@@ -88,5 +93,15 @@ class CustomerServiceImplTest {
         when(repository.findDuplicateByNationalCodeAndId(anyString(), anyInt())).thenReturn(true);
         DuplicateException exception = assertThrows(DuplicateException.class, () -> underTest.update(newCustomer));
         assertEquals("More than this customers with national code 4610735171 are registered in the system", exception.getMessage());
+    }
+
+    private void mockSecurityContext() {
+        Admin principal = mock(Admin.class);
+        when(principal.getUsername()).thenReturn("adminUser");
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getPrincipal()).thenReturn(principal);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
     }
 }
