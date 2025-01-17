@@ -109,6 +109,7 @@ public class AccountServiceImpl implements IAccountService {
         iHistoryService.save(history);
     }
 
+    //generated with sequence DB functionality(see in sequence.sql)
     private String generateUniqueAccountNumber() {
         return String.format("%014d", repository.generateAccountNumber());
     }
