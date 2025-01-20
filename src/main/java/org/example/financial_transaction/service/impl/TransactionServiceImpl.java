@@ -72,7 +72,7 @@ public class TransactionServiceImpl implements ITransactionService {
         checkAccountStatus(source);
         processTransfer(source, withdrawRequest.amount());
         long trackingCode = generateTrackingCode();
-        Transaction transaction = initializationTransaction(source, null, TransactionType.WITHDRAW, trackingCode, withdrawRequest.amount());
+        Transaction transaction = initializationTransaction(null, source, TransactionType.WITHDRAW, trackingCode, withdrawRequest.amount());
         repository.save(transaction);
         return trackingCode;
     }
