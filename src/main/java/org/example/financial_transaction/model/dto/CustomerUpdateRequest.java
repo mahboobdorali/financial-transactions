@@ -1,7 +1,6 @@
 package org.example.financial_transaction.model.dto;
 
 import jakarta.validation.constraints.Pattern;
-import org.example.financial_transaction.model.enumutation.CustomerType;
 import org.example.financial_transaction.validation.customerType.CustomerTypeValid;
 import org.example.financial_transaction.validation.localDate.ValidLocalDate;
 
