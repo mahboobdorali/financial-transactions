@@ -57,6 +57,7 @@ public class TransactionServiceImpl implements ITransactionService {
     private Transaction initializationTransaction(Account destinationAccount, Account sourceAccount, TransactionType transactionType, Long trackingCode, Double amount) {
         Transaction transaction = new Transaction();
         transaction.setDestinationAccount(destinationAccount);
+        transaction.setSourceAccount(sourceAccount);
         transaction.setTransactionType(transactionType);
         transaction.setTrackingCode(trackingCode);
         transaction.setAmount(amount);
