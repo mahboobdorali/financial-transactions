@@ -117,7 +117,7 @@ class TransactionServiceImplTest {
 
     @Test
     public void shouldFilter() {
-        TransactionSearch transactionSearch = new TransactionSearch(null, null, 100.00D, null, null, null
+        TransactionSearch transactionSearch = new TransactionSearch(null, null, null,100.00D, null, null,null
         );
         Pageable pageable = PageRequest.of(0, 10);
         Transaction transaction1 = new Transaction();
