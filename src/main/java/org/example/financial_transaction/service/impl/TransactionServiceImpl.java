@@ -154,7 +154,8 @@ public class TransactionServiceImpl implements ITransactionService {
                 transaction.getId(),
                 transaction.getAmount(),
                 transaction.getCreationDate(),
-                transaction.getTrackingCode()
+                transaction.getTrackingCode(),
+                transaction.getTransactionType()
         ));
     }
 }

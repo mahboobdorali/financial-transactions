@@ -7,11 +7,14 @@ import jakarta.persistence.criteria.Root;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import org.example.financial_transaction.model.Transaction;
+import org.example.financial_transaction.model.enumutation.TransactionType;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Date;
 
-public record TransactionSearch(@Pattern(regexp = "^[0-9]{14}$", message = "sourceAccountNumber must be 14 digits")
+public record TransactionSearch(TransactionType transactionType,
+
+                                @Pattern(regexp = "^[0-9]{14}$", message = "sourceAccountNumber must be 14 digits")
                                 String sourceAccountNumber,
 
                                 @Pattern(regexp = "^[0-9]{14}$", message = "destinationAccountNumber must be 14 digits")
@@ -29,11 +32,14 @@ public record TransactionSearch(@Pattern(regexp = "^[0-9]{14}$", message = "sour
     @Override
     public Predicate toPredicate(Root<Transaction> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
         Predicate predicate = criteriaBuilder.conjunction();
+        if (transactionType != null) {
+            predicate = criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("transactionType"), transactionType));
+        }
         if (sourceAccountNumber != null) {
-            criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("sourceAccount").get("accountNumber"), sourceAccountNumber));
+            predicate = criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("sourceAccount").get("accountNumber"), sourceAccountNumber));
         }
         if (destinationAccountNumber != null) {
-            criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("destinationAccount").get("accountNumber"), destinationAccountNumber));
+            predicate = criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("destinationAccount").get("accountNumber"), destinationAccountNumber));
         }
         if (minAmount != null) {
             predicate = criteriaBuilder.greaterThanOrEqualTo(root.get("amount"), minAmount);
