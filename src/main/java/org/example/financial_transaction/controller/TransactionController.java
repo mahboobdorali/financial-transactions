@@ -37,7 +37,7 @@ public class TransactionController {
 
     @PostMapping("/filter")
     public Page<TransactionSearchResponse> filterTransaction(@Valid @RequestBody TransactionSearch transactionSearch,
-                                               @RequestParam(defaultValue = "1")  Integer page,
+                                               @RequestParam(defaultValue = "0")  Integer page,
                                                @RequestParam(defaultValue = "10") Integer size) {
         return iTransactionService.getFilteredTransactions(transactionSearch, PageRequest.of(page, size));
     }
